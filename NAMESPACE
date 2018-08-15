@@ -1,0 +1,4 @@
+export(SiriDB)
+import(Rcpp)
+import(methods)
+useDynLib(siridbr)

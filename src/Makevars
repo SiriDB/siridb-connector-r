@@ -1,0 +1,7 @@
+## Use the R_HOME indirection to support installations of multiple R version
+
+# Use C++11 if available
+CXX_STD=CXX11
+
+# Linking lbiqpack, libsiridb, libsuv, libuv
+PKG_LIBS=-lqpack -lsiridb -lsuv -luv
