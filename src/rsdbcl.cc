@@ -1,6 +1,6 @@
 #include "rsdbcl.h"
-#include "rqpack.h"
-#include <uv.h>
+#include "rresp.h"
+#include "libuv/include/uv.h"
 
 
 void SiriDB::connect(Rcpp::Function f) {
@@ -72,7 +72,8 @@ void SiriDB::query(std::string q, Rcpp::Function f)
 
 void SiriDB::insert(Rcpp::List series, Rcpp::Function cb)
 {
-    int n = series.length();
+    size_t n = (size_t) series.length();
+    size_t m;
     siridb_series_t * iseries[n];
     siridb_point_t * ipoint;
 
@@ -101,12 +102,13 @@ void SiriDB::insert(Rcpp::List series, Rcpp::Function cb)
             Rcpp::stop("incorrect datatype");
         }
 
+        m = (size_t) pts.length();
         iseries[i] = siridb_series_create(
             tp,
             name.c_str(),
-            pts.length());
+            m);
 
-        for (size_t j = 0; j < pts.length(); j++)
+        for (size_t j = 0; j < m; j++)
         {
             Rcpp::List pt = Rcpp::List((SEXP) pts[j]);
 
@@ -195,7 +197,6 @@ void SiriDB::connect_cb(siridb_req_t * req)
 
 void SiriDB::query_cb(siridb_req_t * req)
 {
-    siridb_t * siridb = req->siridb;
     suv_query_t * suvquery = (suv_query_t *) req->data;
 
     Rcpp::Function * cb = (Rcpp::Function *) suvquery->data;

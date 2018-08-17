@@ -1,0 +1,29 @@
+CXX_STD=CXX11
+
+PKG_LIBS = ./libuv/libuv.a ./libsuv/suv.o ./libqpack/qpack.o ./libsiridb/*.o -lpthread -lws2_32 -lkernel32 -lpsapi -liphlpapi -lshell32 -luserenv
+
+PKG_CPPFLAGS += -D_WIN32_WINNT=0x0600 -DSTRICT_R_HEADERS -Wall -pedantic -O3 #-Wno-deprecated
+
+# Additional flags for libuv borrowed from libuv/Makefile.mingw
+LIBUV_CFLAGS = -Iinclude -Isrc -Isrc/win -DWIN32_LEAN_AND_MEAN -D_WIN32_WINNT=0x0600 #-Wno-missing-braces
+
+$(SHLIB): libuv/libuv.a \
+	libsuv/suv.o \
+	libqpack/qpack.o \
+	libsiridb/errmap.o \
+	libsiridb/packer.o \
+	libsiridb/pkg.o \
+	libsiridb/queue.o \
+	libsiridb/req.o \
+	libsiridb/resp.o \
+	libsiridb/series.o \
+	libsiridb/siridb.o \
+	libsiridb/version.o
+
+libuv/libuv.a:
+	$(MAKE) --directory=libuv -f Makefile.mingw \
+		CC="$(CC)" CFLAGS="$(CFLAGS) $(LIBUV_CFLAGS) $(CPICFLAGS) $(C_VISIBILITY)" \
+		AR="$(AR)" RANLIB="$(RANLIB)" HAVE_DTRACE=0
+
+clean:
+	$(MAKE) --directory=libuv distclean

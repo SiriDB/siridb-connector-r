@@ -1,7 +1,7 @@
 #ifndef RSDBCL_h
 #define RSDBCL_h
 
-#include <suv.h>
+#include "libsuv/suv.h"
 #include <Rcpp.h>
 
 static uv_loop_t loop;

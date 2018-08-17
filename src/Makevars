@@ -1,7 +1,33 @@
-## Use the R_HOME indirection to support installations of multiple R version
-
-# Use C++11 if available
 CXX_STD=CXX11
 
-# Linking lbiqpack, libsiridb, libsuv, libuv
-PKG_LIBS=-lqpack -lsiridb -lsuv -luv
+PKG_LIBS = ./libuv/.libs/libuv.a ./libsuv/suv.o ./libqpack/qpack.o ./libsiridb/*.o
+
+$(SHLIB): libuv/.libs/libuv.a \
+	libsuv/suv.o \
+	libqpack/qpack.o \
+	libsiridb/errmap.o \
+	libsiridb/packer.o \
+	libsiridb/pkg.o \
+	libsiridb/queue.o \
+	libsiridb/req.o \
+	libsiridb/resp.o \
+	libsiridb/series.o \
+	libsiridb/siridb.o \
+	libsiridb/version.o
+
+libuv/m4/lt~obsolete.m4: libuv/m4/lt_obsolete.m4
+	cp -p -f libuv/m4/lt_obsolete.m4 libuv/m4/lt~obsolete.m4
+
+libuv/Makefile: libuv/m4/lt~obsolete.m4
+	(cd libuv \
+		&& touch aclocal.m4 \
+		&& touch -r aclocal.m4 configure Makefile.in \
+		&& chmod +x configure \
+		&& CC="$(CC)" CFLAGS="$(CFLAGS) $(CPICFLAGS) $(C_VISIBILITY)" AR="$(AR)" RANLIB="$(RANLIB)" LDFLAGS="$(LDFLAGS)" ./configure $(CONFIGURE_FLAGS))
+
+libuv/.libs/libuv.a: libuv/Makefile
+	$(MAKE) --directory=libuv \
+		HAVE_DTRACE=0
+
+clean:
+	$(MAKE) --directory=libuv distclean

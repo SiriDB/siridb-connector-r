@@ -1,7 +1,7 @@
 #ifndef RQPACK_h
 #define RQPACK_h
 
-#include <suv.h>
+#include "libsuv/suv.h"
 #include <Rcpp.h>
 
 Rcpp::List on_select(siridb_select_t * select);

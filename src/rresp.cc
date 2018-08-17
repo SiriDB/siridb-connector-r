@@ -1,6 +1,4 @@
-#include "rqpack.h"
-
-using namespace Rcpp;
+#include "rresp.h"
 
 
 Rcpp::List on_select(siridb_select_t * select) {
@@ -10,25 +8,20 @@ Rcpp::List on_select(siridb_select_t * select) {
     {
         siridb_series_t * series = select->series[m];
 
-        // Rcpp::NumericMatrix points(series->n, 2);
         Rcpp::List points(series->n);
 
         for (size_t i = 0; i < series->n; i++)
         {
-            // points[i] = series->points[i].ts;
-            // points[i+series->n] = series->points[i].via.int64;
-
-
             switch (series->tp)
             {
             case SIRIDB_SERIES_TP_INT64:
-                points[i] = Rcpp::List::create(_["ts"] = series->points[i].ts, _["value"] = series->points[i].via.int64);
+                points[i] = Rcpp::List::create(Rcpp::Named("ts") = series->points[i].ts, Rcpp::Named("value") = series->points[i].via.int64);
                 break;
             case SIRIDB_SERIES_TP_REAL:
-                points[i] = Rcpp::List::create(_["ts"] = series->points[i].ts, _["value"] = series->points[i].via.real);
+                points[i] = Rcpp::List::create(Rcpp::Named("ts") = series->points[i].ts, Rcpp::Named("value") = series->points[i].via.real);
                 break;
             case SIRIDB_SERIES_TP_STR:
-                points[i] = Rcpp::List::create(_["ts"] = series->points[i].ts, _["value"] = (Rcpp::StringVector) series->points[i].via.str);
+                points[i] = Rcpp::List::create(Rcpp::Named("ts") = series->points[i].ts, Rcpp::Named("value") = (Rcpp::StringVector) series->points[i].via.str);
                 break;
             }
 
@@ -62,6 +55,7 @@ Rcpp::List on_list(siridb_list_t * list)
             case QP_RES_STR:
                 columns[headers->values[c].via.str] = (Rcpp::StringVector) row->values[c].via.str;
                 break;
+            default: assert(0);
             }
         }
 
@@ -72,12 +66,12 @@ Rcpp::List on_list(siridb_list_t * list)
 
 Rcpp::List on_count(uint64_t count)
 {
-    return Rcpp::List::create(_["count"] = count);
+    return Rcpp::List::create(Rcpp::Named("count") = count);
 }
 
 Rcpp::List on_calc(uint64_t calc)
 {
-    return Rcpp::List::create(_["calculated"] = calc);
+    return Rcpp::List::create(Rcpp::Named("calculated") = calc);
 }
 
 Rcpp::List on_show(siridb_show_t * show)
@@ -98,6 +92,7 @@ Rcpp::List on_show(siridb_show_t * show)
         case QP_RES_STR:
             columns[show->items[i].key] = (Rcpp::StringVector) show->items[i].value->via.str;
             break;
+        default: assert(0);
         }
     }
 
