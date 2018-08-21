@@ -197,7 +197,7 @@ struct qp_packer_s
     size_t alloc_size;
     size_t depth;
     size_t nest_sz;
-    struct qp__nest_s nesting[];
+    struct qp__nest_s * nesting;
 };
 
 struct qp_unpacker_s

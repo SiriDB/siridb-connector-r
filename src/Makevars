@@ -2,7 +2,7 @@ CXX_STD=CXX11
 
 PKG_LIBS = ./libuv/.libs/libuv.a ./libsuv/suv.o ./libqpack/qpack.o ./libsiridb/*.o
 
-$(SHLIB): libuv/.libs/libuv.a \
+$(SHLIB): \
 	libsuv/suv.o \
 	libqpack/qpack.o \
 	libsiridb/errmap.o \
@@ -13,7 +13,8 @@ $(SHLIB): libuv/.libs/libuv.a \
 	libsiridb/resp.o \
 	libsiridb/series.o \
 	libsiridb/siridb.o \
-	libsiridb/version.o
+	libsiridb/version.o \
+	libuv/.libs/libuv.a
 
 libuv/m4/lt~obsolete.m4: libuv/m4/lt_obsolete.m4
 	cp -p -f libuv/m4/lt_obsolete.m4 libuv/m4/lt~obsolete.m4

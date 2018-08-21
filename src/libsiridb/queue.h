@@ -35,7 +35,7 @@ struct queue_node_s
 struct queue_s
 {
     size_t len;
-    queue_node_t nodes[];
+    queue_node_t * nodes;
 };
 
 #endif /* SIRIDB_QUEUE__H_ */

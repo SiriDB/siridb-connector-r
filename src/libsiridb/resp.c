@@ -119,6 +119,7 @@ void siridb_resp_destroy(siridb_resp_t * resp)
         {
             free(resp->timeit->perfs[n].server);
         }
+        free(resp->timeit->perfs);
         free(resp->timeit);
     }
     switch (resp->tp)
@@ -134,6 +135,7 @@ void siridb_resp_destroy(siridb_resp_t * resp)
         {
             siridb_series_destroy(resp->via.select->series[n]);
         }
+        free(resp->via.select->series);
         free(resp->via.select);
         break;
     case SIRIDB_RESP_TP_DATA:
@@ -150,6 +152,7 @@ void siridb_resp_destroy(siridb_resp_t * resp)
             free(resp->via.show->items[n].key);
             qp_res_destroy(resp->via.show->items[n].value);
         }
+        free(resp->via.show->items);
         free(resp->via.show);
         break;
     case SIRIDB_RESP_TP_SUCCESS_MSG:
@@ -399,8 +402,9 @@ static int siridb_resp_get_timeit(siridb_resp_t * resp, qp_map_t * map)
             size_t j;
             qp_array_t * timeits = map->values[i].via.array;
             resp->timeit = (siridb_timeit_t *) malloc(
-                    sizeof(siridb_timeit_t) +
-                    sizeof(siridb_perf_t) * timeits->n);
+                    sizeof(siridb_timeit_t));
+            resp->timeit->perfs = (siridb_perf_t *) malloc(sizeof(siridb_perf_t) * timeits->n);
+
             if (resp->timeit == NULL)
             {
                 return ERR_MEM_ALLOC;
@@ -451,9 +455,7 @@ static int siridb_resp_get_select(siridb_resp_t * resp, qp_map_t * map)
     size_t i, n;
     siridb_series_t * series;
 
-    resp->via.select = (siridb_select_t *) malloc(
-            sizeof(siridb_select_t) +
-            sizeof(siridb_series_t *) * (map->n - (resp->timeit != NULL)));
+    resp->via.select = (siridb_select_t *) malloc(sizeof(siridb_select_t));
 
     if (resp->via.select == NULL)
     {
@@ -462,6 +464,8 @@ static int siridb_resp_get_select(siridb_resp_t * resp, qp_map_t * map)
 
     resp->tp = SIRIDB_RESP_TP_SELECT;
     resp->via.select->n = 0;
+    resp->via.select->series = (siridb_series_t *) malloc(
+        sizeof(siridb_series_t *) * (map->n - (resp->timeit != NULL)));
 
     for (i = 0; i < map->n; i++)
     {
@@ -606,9 +610,8 @@ static int siridb_resp_get_show(siridb_resp_t * resp, qp_map_t * map)
         siridb_item_t * item;
         siridb_show_t * show;
 
-        resp->via.show = show = (siridb_show_t *) malloc(
-                sizeof(siridb_show_t) +
-                sizeof(siridb_item_t) * arr->n);
+        resp->via.show = show = (siridb_show_t *) malloc(sizeof(siridb_show_t));
+        show->items = (siridb_item_t *) malloc(sizeof(siridb_item_t) * arr->n);
 
         if (show == NULL)
         {

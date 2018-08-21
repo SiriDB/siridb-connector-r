@@ -48,7 +48,7 @@ struct siridb_series_s
     siridb_series_tp tp;
     char * name;
     size_t n;
-    siridb_point_t points[];
+    siridb_point_t * points;
 };
 
 #endif /* SIRIDB_SERIES_H_ */

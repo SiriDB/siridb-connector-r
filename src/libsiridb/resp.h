@@ -99,19 +99,19 @@ struct siridb_list_s
 struct siridb_select_s
 {
     size_t n;
-    siridb_series_t * series[];
+    siridb_series_t ** series;
 };
 
 struct siridb_show_s
 {
     size_t n;
-    siridb_item_t items[];
+    siridb_item_t * items;
 };
 
 struct siridb_timeit_s
 {
     size_t n;
-    siridb_perf_t perfs[];
+    siridb_perf_t * perfs;
 };
 
 #endif /* SIRIDB_RESP_H_ */

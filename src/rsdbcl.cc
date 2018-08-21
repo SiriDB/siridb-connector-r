@@ -74,7 +74,8 @@ void SiriDB::insert(Rcpp::List series, Rcpp::Function cb)
 {
     size_t n = (size_t) series.length();
     size_t m;
-    siridb_series_t * iseries[n];
+    std::vector<siridb_series_t *> iseries;
+    siridb_series_t * iserie;
     siridb_point_t * ipoint;
 
     for (size_t i = 0; i < n; i++)
@@ -103,7 +104,8 @@ void SiriDB::insert(Rcpp::List series, Rcpp::Function cb)
         }
 
         m = (size_t) pts.length();
-        iseries[i] = siridb_series_create(
+
+        iserie = siridb_series_create(
             tp,
             name.c_str(),
             m);
@@ -112,7 +114,7 @@ void SiriDB::insert(Rcpp::List series, Rcpp::Function cb)
         {
             Rcpp::List pt = Rcpp::List((SEXP) pts[j]);
 
-            ipoint = iseries[i]->points + j;
+            ipoint = iserie->points + j;
             ipoint->ts = (uint64_t) pt["timestamp"];
 
             switch (tp)
@@ -129,18 +131,20 @@ void SiriDB::insert(Rcpp::List series, Rcpp::Function cb)
                 break;
             }
         }
+        iseries.push_back(iserie);
     }
 
     siridb_req_t * req = siridb_req_create(siridb, insert_cb, NULL);
     /* handle req == NULL */
 
-    suv_insert_t * suvinsert = suv_insert_create(req, iseries, n);
+    suv_insert_t * suvinsert = suv_insert_create(req, &iseries[0], n);
     /* handle suvinsert == NULL */
 
     /* cleanup the series, we don't need them anymore */
-    for (size_t i = 0; i < n; i++)
-    {
-        siridb_series_destroy(iseries[i]);
+    for (   std::vector<siridb_series_t *>::iterator it = iseries.begin();
+            it != iseries.end();
+            ++it) {
+        siridb_series_destroy(*it);
     }
 
     /* bind suvinsert to qreq->data */
