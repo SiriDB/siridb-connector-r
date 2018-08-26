@@ -7,9 +7,4 @@ Maintainer: Koos Joosten <koos@transceptor.technology>
 Description: Asynchronous connector for SiriDB.
 License: file LICENSE
 Encoding: UTF-8
-Imports:
-    methods,
-    Rcpp
-LinkingTo:
-    Rcpp
 RoxygenNote: 6.1.0

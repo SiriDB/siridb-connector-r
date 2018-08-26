@@ -1,4 +1,3 @@
-export(SiriDB)
-import(Rcpp)
-import(methods)
-useDynLib(siridbr)
+useDynLib(siridbr, .registration = TRUE)
+
+exportPattern("^[[:alpha:]]+")

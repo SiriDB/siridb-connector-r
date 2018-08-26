@@ -1,42 +1,35 @@
 #ifndef RSDBCL_h
 #define RSDBCL_h
 
+#include <R.h>
+#include <Rdefines.h>
+#include <R_ext/Rdynload.h>
 #include "libsuv/suv.h"
-#include <Rcpp.h>
 
 static uv_loop_t loop;
+siridb_t * siridb;
+suv_buf_t * buf;
 
-class SiriDB {
-private:
-    siridb_t * siridb;
-    suv_buf_t * buf;
+static void connect_cb(siridb_req_t * req);
+static void query_cb(siridb_req_t * req);
+static void insert_cb(siridb_req_t * req);
+static void on_close(void * data, const char * msg);//TODOK
+static void on_error(void * data, const char * msg);//TODOK
+SEXP sconnect(SEXP env, SEXP x, SEXP f);
+SEXP squery(SEXP env, SEXP x, SEXP f);
+SEXP sinsert(SEXP env, SEXP x, SEXP f);
+SEXP sclose(void);
+SEXP print_resp(siridb_resp_t * resp);
+SEXP print_timeit(siridb_timeit_t * timeit);//TODOK
+SEXP print_select(siridb_select_t * select);
+SEXP print_list(siridb_list_t * list);
+SEXP print_count(uint64_t count);
+SEXP print_calc(uint64_t calc);
+SEXP print_show(siridb_show_t * show);
 
-    std::string user_;
-    std::string password_;
-    std::string dbname_;
-    std::string server_;
-    int port_;
-
-    static void connect_cb(siridb_req_t * req);
-    static void query_cb(siridb_req_t * req);
-    static void insert_cb(siridb_req_t * req);
-
-    static void on_close(void * data, const char * msg);
-    static void on_error(void * data, const char * msg);
-public:
-    SiriDB(std::string user, std::string password, std::string dbname, std::string server, int port) {
-        user_ = user;
-        password_ = password;
-        dbname_ = dbname;
-        server_ = server;
-        port_ = port;
-    }
-
-    void connect(Rcpp::Function cb);
-    void query(std::string q, Rcpp::Function cb);
-    void insert(Rcpp::List series, Rcpp::Function cb);
-    void close();
-};
-
+typedef struct {
+    SEXP cb;
+    SEXP env;
+} work_t;
 
 #endif
