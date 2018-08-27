@@ -1,6 +1,7 @@
 ## Test environments
-* ubuntu 16.04, R 3.4.4
-* windows 7, R-devel (2018-08-13 r75132)
+* Ubuntu 18.04.1 LTS
+* devtools::build_win() env
+
 
 ## R CMD check results
 0 errors | 0 warnings | 2 notes
