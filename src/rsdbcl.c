@@ -5,12 +5,12 @@
 #include <assert.h>
 
 
-SEXP sconnect(SEXP env, SEXP x, SEXP f) 
+SEXP sconnect(SEXP env, SEXP x, SEXP f)
 {
     work_t * w = (work_t *) malloc(sizeof(work_t));
     w->cb = f;
     w->env = env;
-    
+
     const char * user = CHAR(asChar(VECTOR_ELT(x, 0)));
     const char * passwd = CHAR(asChar(VECTOR_ELT(x, 1)));
     const char * dbname = CHAR(asChar(VECTOR_ELT(x, 2)));
@@ -34,7 +34,7 @@ SEXP sconnect(SEXP env, SEXP x, SEXP f)
 
     suv_connect(&loop, connect, buf, (struct sockaddr *) &addr);
     uv_run(&loop, UV_RUN_DEFAULT);
-    
+
     return R_NilValue;
 }
 
@@ -52,7 +52,7 @@ SEXP squery(SEXP env, SEXP x, SEXP f)
     req->data = (void *) suvquery;
 
     suv_query(suvquery);
-    
+
     return R_NilValue;
 }
 
@@ -67,7 +67,7 @@ SEXP sinsert(SEXP env, SEXP x, SEXP f)
     const char * typ = CHAR(asChar(VECTOR_ELT(VECTOR_ELT(x, 0), 1)));
     int n;
     int m = length(x);
-    int t;
+    siridb_series_tp tp;
 
     siridb_series_t * iseries[m];
     siridb_point_t * ipoint;
@@ -81,7 +81,6 @@ SEXP sinsert(SEXP env, SEXP x, SEXP f)
         pts = VECTOR_ELT(s, 2);
         n = length(pts);
 
-        siridb_series_tp tp;
         if (!strcmp(typ, "integer"))
         {
             tp = SIRIDB_SERIES_TP_INT64;
@@ -103,12 +102,12 @@ SEXP sinsert(SEXP env, SEXP x, SEXP f)
             tp,
             name,
             n);
-        
+
         for (size_t j = 0; j < n; j++) {
             tv = VECTOR_ELT(pts, j);
             ipoint = iseries[i]->points + j;
             ipoint->ts = (uint64_t) asInteger(VECTOR_ELT(tv, 0));
-                
+
             switch (tp)
             {
             case SIRIDB_SERIES_TP_INT64:
@@ -126,17 +125,17 @@ SEXP sinsert(SEXP env, SEXP x, SEXP f)
 
     siridb_req_t * req = siridb_req_create(siridb, insert_cb, NULL);
     suv_insert_t * suvinsert = suv_insert_create(req, iseries, m);
-    
+
     suvinsert->data = w;
     req->data = (void *) suvinsert;
 
     suv_insert(suvinsert);
-    
+
     for (size_t i = 0; i < m; i++)
     {
         siridb_series_destroy(iseries[i]);
     }
-    
+
     return R_NilValue;
 }
 
@@ -148,11 +147,11 @@ SEXP sclose(void)
 
 static void connect_cb(siridb_req_t * req)
 {
-    char msg[200];    
+    char msg[200];
     SEXP out;
     suv_connect_t * connect = (suv_connect_t *) req->data;
     work_t * w = (work_t *) connect->data;
-    
+
     if (req->status)
     {
         sprintf(msg, "connect failed: %s", suv_strerror(req->status));
@@ -178,14 +177,14 @@ static void connect_cb(siridb_req_t * req)
     }
 
     PROTECT(out);
-    
+
     SEXP call = LCONS(w->cb, LCONS(out, R_NilValue));
     PROTECT(call);
-    
-    SEXP val = R_forceAndCall(call, 1, w->env);
-    
+
+    R_forceAndCall(call, 1, w->env);
+
     UNPROTECT(2);
-    
+
     /* destroy suv_connect_t */
     suv_connect_destroy(connect);
 
@@ -197,13 +196,15 @@ static void connect_cb(siridb_req_t * req)
 
 static void query_cb(siridb_req_t * req)
 {
+    char msg[200];
     SEXP out;
     suv_query_t * connect = (suv_query_t *) req->data;
     work_t * w = (work_t *) connect->data;
-    
+
     if (req->status != 0)
     {
-        // printf("error handling request: %s", suv_strerror(req->status));
+        sprintf(msg, "error handling request: %s", suv_strerror(req->status));
+        out = mkString(msg);
     }
     else
     {
@@ -212,9 +213,8 @@ static void query_cb(siridb_req_t * req)
         siridb_resp_destroy(resp);
     }
 
-    // SEXP out = mkString("QUERY KLAAR");
     SEXP call = PROTECT(LCONS(w->cb, LCONS(out, R_NilValue)));
-    SEXP val = R_forceAndCall(call, 1, w->env);
+    R_forceAndCall(call, 1, w->env);
     UNPROTECT(1);
 
 
@@ -224,13 +224,15 @@ static void query_cb(siridb_req_t * req)
 
 static void insert_cb(siridb_req_t * req)
 {
+    char msg[200];
     SEXP out;
     suv_insert_t * connect = (suv_insert_t *) req->data;
     work_t * w = (work_t *) connect->data;
-    
+
     if (req->status != 0)
     {
-        // printf("error handling request: %s", suv_strerror(req->status));
+        sprintf(msg, "error handling request: %s", suv_strerror(req->status));
+        out = mkString(msg);
     }
     else
     {
@@ -240,9 +242,9 @@ static void insert_cb(siridb_req_t * req)
     }
 
     SEXP call = PROTECT(LCONS(w->cb, LCONS(out, R_NilValue)));
-    SEXP val = R_forceAndCall(call, 1, w->env);
+    R_forceAndCall(call, 1, w->env);
     UNPROTECT(1);
-    
+
 
     suv_insert_destroy((suv_insert_t *) req->data);
     siridb_req_destroy(req);
@@ -266,7 +268,7 @@ SEXP print_resp(siridb_resp_t * resp)
     switch (resp->tp)
     {
     case SIRIDB_RESP_TP_SELECT:
-        out = print_select(resp->via.select); 
+        out = print_select(resp->via.select);
         break;
     case SIRIDB_RESP_TP_LIST:
         out = print_list(resp->via.list); break;
@@ -281,10 +283,11 @@ SEXP print_resp(siridb_resp_t * resp)
     case SIRIDB_RESP_TP_SUCCESS_MSG:
         out = mkString(resp->via.success_msg); break;
     case SIRIDB_RESP_TP_ERROR:
-        break;//out = mkString(resp->via.error); break;
+        out = mkString(resp->via.error); break;
     case SIRIDB_RESP_TP_ERROR_MSG:
-        mkString(resp->via.error_msg); break;
-    default: assert(0);
+        out = mkString(resp->via.error_msg); break;
+    default:
+        out = mkString("unpack error: unknown response type"); break;
     }
     return out;
 }
@@ -322,7 +325,7 @@ SEXP print_select(siridb_select_t * select)
         {
             SEXP tv = allocVector(VECSXP, 2);
             SET_VECTOR_ELT(tv, 0, ScalarInteger(series->points[i].ts));
-                
+
             switch (series->tp)
             {
             case SIRIDB_SERIES_TP_INT64:
@@ -354,11 +357,11 @@ SEXP print_list(siridb_list_t * list)
     for (size_t r = 0; r < list->data->via.array->n; r++)
     {
         qp_array_t * row = list->data->via.array->values[r].via.array;
-        
+
         SEXP nms = allocVector(STRSXP, row->n);
         SEXP columns = allocVector(VECSXP, row->n);
         setAttrib(columns, R_NamesSymbol, nms);
-    
+
         for (size_t c = 0; c < row->n; c++)
         {
             SET_STRING_ELT(nms, c, mkChar(headers->values[c].via.str));
@@ -374,11 +377,11 @@ SEXP print_list(siridb_list_t * list)
             case QP_RES_STR:
                 SET_VECTOR_ELT(columns, c, mkString(row->values[c].via.str));
                 break;
-            default: 
+            default:
                 SET_VECTOR_ELT(columns, c, R_NilValue);
             }
         }
-        
+
         SET_VECTOR_ELT(rows, r, columns);
     }
     return rows;
@@ -411,7 +414,7 @@ SEXP print_show(siridb_show_t * show)
     SEXP nms = allocVector(STRSXP, show->n);
     SEXP columns = allocVector(VECSXP, show->n);
     setAttrib(columns, R_NamesSymbol, nms);
-    
+
     for (size_t c = 0; c < show->n; c++)
     {
         SET_STRING_ELT(nms, c, mkChar(show->items[c].key));
@@ -426,7 +429,7 @@ SEXP print_show(siridb_show_t * show)
         case QP_RES_STR:
             SET_VECTOR_ELT(columns, c, mkString(show->items[c].value->via.str));
             break;
-        default: 
+        default:
             SET_VECTOR_ELT(columns, c, R_NilValue);
         }
     }
@@ -437,8 +440,8 @@ SEXP print_show(siridb_show_t * show)
 // .C interface
 // void fun(double *a, int *b, char **v, int *d);
 // static R_NativePrimitiveArgType argfun[] = {  REALSXP, INTSXP, STRSXP, LGLSXP };
-static const R_CMethodDef cMethods[] = 
-{ 
+static const R_CMethodDef cMethods[] =
+{
 //    {"SiriDB$fun",   (DL_FUNC) &fun, 4, argfun},
    {NULL, NULL, 0, NULL}
 };
@@ -452,7 +455,7 @@ R_CallMethodDef callMethods[]  = {
   {NULL, NULL, 0}
 };
 
-void R_init_siridbr(DllInfo* info) 
+void R_init_siridbr(DllInfo* info)
 {
   R_registerRoutines(info, cMethods, callMethods, NULL, NULL);
   R_useDynamicSymbols(info, TRUE);
