@@ -25,17 +25,13 @@ static void queue__walk(queue_node_t * node, queue_cb cb, int * rc);
  */
 queue_t * queue_create(void)
 {
-    queue_t * queue = (queue_t *) malloc(sizeof(queue_t));
+    queue_t * queue = (queue_t *) calloc(
+            1,
+            sizeof(queue_t) + QUEUE_NODE_SZ * sizeof(queue_node_t));
 
     if (queue != NULL)
     {
         queue->len = 0;
-        queue->nodes = (queue_node_t *) calloc(QUEUE_NODE_SZ,
-            sizeof(queue_node_t));
-        if (queue->nodes == NULL) {
-            free(queue);
-            return NULL;
-        }
     }
     return queue;
 }
@@ -80,7 +76,6 @@ void queue_destroy(queue_t * queue, queue_cb cb)
         }
     }
 
-    free(queue->nodes);
     free(queue);
 }
 

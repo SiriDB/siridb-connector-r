@@ -20,7 +20,7 @@ siridb_series_t * siridb_series_create(
         size_t n)
 {
     siridb_series_t * series = (siridb_series_t *) malloc(
-            sizeof(siridb_series_t));
+            sizeof(siridb_series_t) + n * sizeof(siridb_point_t));
 
     if (series == NULL)
     {
@@ -40,8 +40,6 @@ siridb_series_t * siridb_series_create(
     }
 
     series->n = n;
-    series->points = (siridb_point_t *) malloc(sizeof(siridb_point_t)*n);
-
 
     if (series->tp == SIRIDB_SERIES_TP_STR)
     {
@@ -66,7 +64,6 @@ void siridb_series_destroy(siridb_series_t * series)
             free(series->points[i].via.str);
         }
     }
-    free(series->points);
     free(series->name);
     free(series);
 }

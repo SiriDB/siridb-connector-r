@@ -153,37 +153,30 @@ qp_packer_t * qp_packer_create(size_t alloc_size)
     assert (alloc_size);  /* alloc_size should not be 0 */
 
     qp_packer_t * packer;
-    packer = (qp_packer_t *) malloc(sizeof(qp_packer_t));
-    if (packer == NULL)
+    packer = (qp_packer_t *) malloc(
+            sizeof(qp_packer_t) +
+            QP__INITIAL_NEST_SIZE * sizeof(struct qp__nest_s));
+    if (packer != NULL)
     {
-        return NULL;
-    }
-
-    packer->buffer = NULL;
-    packer->nesting = NULL;
-
     packer->alloc_size = alloc_size;
     packer->buffer_size = alloc_size;
     packer->len = 0;
     packer->depth = 0;
     packer->nest_sz = QP__INITIAL_NEST_SIZE;
-    packer->nesting = (struct qp__nest_s *) malloc(
-        sizeof(struct qp__nest_s) * packer->nest_sz);
     packer->buffer = (unsigned char *) malloc(
             sizeof(unsigned char) * alloc_size);
 
-    if (packer->buffer == NULL || packer->nesting == NULL)
+        if (packer->buffer == NULL)
     {
-        qp_packer_destroy(packer);
+            free(packer);
         packer = NULL;
     }
-
+    }
     return packer;
 }
 
 void qp_packer_destroy(qp_packer_t * packer)
 {
-    free(packer->nesting);
     free(packer->buffer);
     free(packer);
 }
@@ -262,10 +255,11 @@ int qp_add_array(qp_packer_t ** packaddr)
 
     if (packer->depth == packer->nest_sz)
     {
-        struct qp__nest_s * tmp;
+        qp_packer_t * tmp;
         packer->nest_sz *= 2;
-        tmp = (struct qp__nest_s *) realloc(
-                packer->nesting,
+        tmp = (qp_packer_t *) realloc(
+                packer,
+                sizeof(qp_packer_t) +
                 packer->nest_sz * (sizeof(struct qp__nest_s)));
         if (tmp == NULL)
         {
@@ -273,7 +267,7 @@ int qp_add_array(qp_packer_t ** packaddr)
             return QP_ERR_ALLOC;
         }
 
-        packer->nesting = tmp;
+        (*packaddr) = packer = tmp;
     }
     packer->nesting[i].n = 0;
     packer->nesting[i].pos = packer->len;
@@ -321,10 +315,11 @@ int qp_add_map(qp_packer_t ** packaddr)
 
     if (packer->depth == packer->nest_sz)
     {
-        struct qp__nest_s * tmp;
+        qp_packer_t * tmp;
         packer->nest_sz *= 2;
-        tmp = (struct qp__nest_s *) realloc(
-                packer->nesting,
+        tmp = (qp_packer_t *) realloc(
+                packer,
+                sizeof(qp_packer_t) +
                 packer->nest_sz * (sizeof(struct qp__nest_s)));
         if (tmp == NULL)
         {
@@ -332,7 +327,7 @@ int qp_add_map(qp_packer_t ** packaddr)
             return QP_ERR_ALLOC;
         }
 
-        packer->nesting = tmp;
+        (*packaddr) = packer = tmp;
     }
     packer->nesting[i].n = 0;
     packer->nesting[i].pos = packer->len;
@@ -920,8 +915,8 @@ qp_res_t * qp_unpacker_res(qp_unpacker_t * unpacker, int * rc)
 
 void qp_print(const unsigned char * data, size_t len)
 {
-    //TODOKqp_fprint(stdout, data, len);
-    //TODOKprintf("\n");
+    qp_fprint(stdout, data, len);
+    printf("\n");
 }
 
 void qp_fprint(FILE * stream, const unsigned char * data, size_t len)

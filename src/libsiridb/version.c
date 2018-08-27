@@ -5,7 +5,7 @@
  *      Author: Jeroen van der Heijden <jeroen@transceptor.technology>
  */
 
- #include "version.h"
+#include "version.h"
 
 const char * siridb_version(void)
 {
