@@ -12,7 +12,7 @@
   \item{callback}{A callback function can be used to check if the connect is successful}
 }
 \examples{
-  s = new(SiriDB, "iris", "siri", "dbtest", "localhost", 9000)
+  s <- SiriDB(user="iris", password="siri", dbname="dbtest", server="localhost", port=9000)
   s$connect(function (err) {
     # success: err is NULL
     # error:   err is a string with an error message
