@@ -1,0 +1,7 @@
+^cran-comments\.md$ # Comments for CRAN submission
+/\.git$
+/\.github$
+/\.mailmap$
+/\.o$
+/\.so$
+^src/libuv/m4/lt~obsolete.m4$
