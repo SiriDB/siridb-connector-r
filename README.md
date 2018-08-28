@@ -118,7 +118,6 @@ siridb$close()
 
 ## Events
 TODO
-```
 
 ## Status codes
 Sometimes its useful to act on a specific error, for example you might want to retry the request in case of `ERR_SERVER` while a `ERR_INSERT` error indicates something is wrong with the data.
