@@ -62,7 +62,7 @@ SEXP sinsert(SEXP env, SEXP x, SEXP f)
     w->cb = f;
     w->env = env;
 
-    SEXP s, pts, tv;
+    SEXP s, pts, tv, val;
     const char * name = CHAR(asChar(VECTOR_ELT(VECTOR_ELT(x, 0), 0)));
     const char * typ = CHAR(asChar(VECTOR_ELT(VECTOR_ELT(x, 0), 1)));
     int n;
@@ -105,20 +105,26 @@ SEXP sinsert(SEXP env, SEXP x, SEXP f)
 
         for (size_t j = 0; j < n; j++) {
             tv = VECTOR_ELT(pts, j);
+            val = VECTOR_ELT(tv, 1);
+            if (TYPEOF())
             ipoint = iseries[i]->points + j;
             ipoint->ts = (uint64_t) asInteger(VECTOR_ELT(tv, 0));
 
-            switch (tp)
+            switch (TYPEOF(x)
             {
-            case SIRIDB_SERIES_TP_INT64:
-                ipoint->via.int64 = (int64_t) asInteger(VECTOR_ELT(tv, 1));
-                break;
-            case SIRIDB_SERIES_TP_REAL:
-                ipoint->via.real = (double_t) asReal(VECTOR_ELT(tv, 1));
-                break;
-            case SIRIDB_SERIES_TP_STR:
-                ipoint->via.str = (char *) strdup(CHAR(asChar(VECTOR_ELT(tv, 1))));
-                break;
+                case LGLSXP:
+                    ipoint->via.int64 = (int64_t) asInteger(VECTOR_ELT(tv, 1));
+                    break;
+                case INTSXP:
+                    ipoint->via.int64 = (int64_t) asInteger(VECTOR_ELT(tv, 1));
+                    break;
+                case REALSXP:
+                    ipoint->via.real = (double_t) asReal(VECTOR_ELT(tv, 1));
+                    break;
+                case STRSXP:
+                    ipoint->via.str = (char *) strdup(CHAR(asChar(VECTOR_ELT(tv, 1))));
+                    break;
+
             }
         }
     }
@@ -149,6 +155,7 @@ static void connect_cb(siridb_req_t * req)
 {
     char msg[200];
     SEXP out;
+    SEXP status = ScalarInteger(req->status);
     suv_connect_t * connect = (suv_connect_t *) req->data;
     work_t * w = (work_t *) connect->data;
 
@@ -176,13 +183,8 @@ static void connect_cb(siridb_req_t * req)
         }
     }
 
-    PROTECT(out);
-
-    SEXP call = LCONS(w->cb, LCONS(out, R_NilValue));
-    PROTECT(call);
-
-    R_forceAndCall(call, 1, w->env);
-
+    SEXP call = PROTECT(LCONS(w->cb, LCONS(out, LCONS(status, R_NilValue))));
+    R_forceAndCall(call, 2, w->env);
     UNPROTECT(2);
 
     /* destroy suv_connect_t */
@@ -198,6 +200,8 @@ static void query_cb(siridb_req_t * req)
 {
     char msg[200];
     SEXP out;
+    SEXP status = ScalarInteger(req->status);
+
     suv_query_t * connect = (suv_query_t *) req->data;
     work_t * w = (work_t *) connect->data;
 
@@ -213,9 +217,9 @@ static void query_cb(siridb_req_t * req)
         siridb_resp_destroy(resp);
     }
 
-    SEXP call = PROTECT(LCONS(w->cb, LCONS(out, R_NilValue)));
-    R_forceAndCall(call, 1, w->env);
-    UNPROTECT(1);
+    SEXP call = PROTECT(LCONS(w->cb, LCONS(out, LCONS(status, R_NilValue))));
+    R_forceAndCall(call, 2, w->env);
+    UNPROTECT(2);
 
 
     suv_query_destroy((suv_query_t *) req->data);
@@ -226,6 +230,8 @@ static void insert_cb(siridb_req_t * req)
 {
     char msg[200];
     SEXP out;
+    SEXP status = ScalarInteger(req->status);
+
     suv_insert_t * connect = (suv_insert_t *) req->data;
     work_t * w = (work_t *) connect->data;
 
@@ -241,9 +247,9 @@ static void insert_cb(siridb_req_t * req)
         siridb_resp_destroy(resp);
     }
 
-    SEXP call = PROTECT(LCONS(w->cb, LCONS(out, R_NilValue)));
-    R_forceAndCall(call, 1, w->env);
-    UNPROTECT(1);
+    SEXP call = PROTECT(LCONS(w->cb, LCONS(out, LCONS(status, R_NilValue))));
+    R_forceAndCall(call, 2, w->env);
+    UNPROTECT(2);
 
 
     suv_insert_destroy((suv_insert_t *) req->data);
@@ -462,5 +468,5 @@ void R_init_siridbr(DllInfo* info)
 }
 void R_unload_siridbr(DllInfo *info)
 {
-  // Release resources.
+  // TODO Release resources.
 }

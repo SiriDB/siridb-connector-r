@@ -24,7 +24,7 @@ install.packages('siridbr')
 ```{r}
 library(siridbr)
 
-siridb <- SiriDB(user="iris", password="siri", dbname="dbtest", server="localhost", port=9000)
+siridb <- SiriDB(user="iris", password="siri", dbname="dbtest", server="localhost", port=9000L)
 
 siridb$connect(function(err) {
     if (!is.null(err)) {
@@ -43,7 +43,7 @@ siridb <- SiriDB(
     password="siri",     # password
     dbname="dbtest",     # database name
     server="localhost",  # server address
-    port=9000            # server port
+    port=9000L           # server port
 )
 ```
 
@@ -93,8 +93,8 @@ series = list(
         name='example',     # name
         type='integer',     # float, integer or string
         points=list(
-            list(timestamp=1500000000, value=0),    # time-stamp, value
-            list(timestamp=1500000900, value=1)     # etc.
+            list(timestamp=1500000000, value=0L),   # time-stamp, value
+            list(timestamp=1500000900, value=1L)    # etc.
         )
     )
 )

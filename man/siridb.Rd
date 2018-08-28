@@ -15,5 +15,5 @@
   \item{port}{Server port}
 }
 \examples{
-  s <- SiriDB(user="iris", password="siri", dbname="dbtest", server="localhost", port=9000)
+  s <- SiriDB(user="iris", password="siri", dbname="dbtest", server="localhost", port=9000L)
 }

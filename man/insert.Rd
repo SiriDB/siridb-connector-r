@@ -21,15 +21,15 @@
 \examples{
   series = list(
     list(name='series_i', type='integer', points=list(
-      list(timestamp=1500000000, value=0),
-      list(timestamp=1500000900, value=1))),
+      list(timestamp=1500000000L, value=0L),
+      list(timestamp=1500000900L, value=1L))),
     list(name='series_f', type='float', points=list(
-      list(timestamp=1500000000, value=0.1))),
+      list(timestamp=1500000000L, value=0.1))),
     list(name='series_s', type='string', points=list(
-      list(timestamp=1500000000, value='blabla')))
+      list(timestamp=1500000000L, value='blabla')))
   )
 
-  s <- SiriDB(user="iris", password="siri", dbname="dbtest", server="localhost", port=9000)
+  s <- SiriDB(user="iris", password="siri", dbname="dbtest", server="localhost", port=9000L)
   s$connect(function (err) {
     if (is.null(err)) {
       s$insert(series, function (resp, status) {
