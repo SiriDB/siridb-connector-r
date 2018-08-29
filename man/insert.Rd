@@ -6,7 +6,7 @@
 \description{
   Insert data
   \cr
-  Insert time series data into 'SiriDB'. Requires a List with at least one series and a callback function to catch the result.
+  Insert time series data into SiriDB. Requires a List with at least one series and a callback function to catch the result.
 }
 \arguments{
   \item{series}{A List containing the series to insert}

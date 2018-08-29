@@ -1,10 +1,10 @@
 Package: siridbr
 Type: Package
-Title: A SiriDB Connector for R
+Title: A 'SiriDB' Connector for R
 Version: 0.1.0
 Author: Koos Joosten
 Maintainer: Koos Joosten <koos@transceptor.technology>
-Description: Asynchronous connector for SiriDB.
+Description: Asynchronous connector for 'SiriDB'.
 License: MIT + file LICENSE
 Encoding: UTF-8
 RoxygenNote: 6.1.0
