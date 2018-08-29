@@ -62,9 +62,8 @@ SEXP sinsert(SEXP env, SEXP x, SEXP f)
     w->cb = f;
     w->env = env;
 
-    SEXP s, pts, tv, val;
-    const char * name = CHAR(asChar(VECTOR_ELT(VECTOR_ELT(x, 0), 0)));
-    const char * typ = CHAR(asChar(VECTOR_ELT(VECTOR_ELT(x, 0), 1)));
+    SEXP s, pts, tv, ts, val;
+    const char * name;
     int n;
     int m = length(x);
     siridb_series_tp tp;
@@ -77,54 +76,55 @@ SEXP sinsert(SEXP env, SEXP x, SEXP f)
     {
         s = VECTOR_ELT(x, i);
         name = CHAR(asChar(VECTOR_ELT(s, 0)));
-        typ = CHAR(asChar(VECTOR_ELT(s, 1)));
-        pts = VECTOR_ELT(s, 2);
+        pts = VECTOR_ELT(s, 1);
         n = length(pts);
 
-        if (!strcmp(typ, "integer"))
-        {
-            tp = SIRIDB_SERIES_TP_INT64;
-        }
-        else if (!strcmp(typ, "float"))
-        {
-            tp = SIRIDB_SERIES_TP_REAL;
-        }
-        else if (!strcmp(typ, "string"))
-        {
-            tp = SIRIDB_SERIES_TP_STR;
-        }
-        else
-        {
-            // Rcpp::stop("incorrect datatype");
+        if (n>0) {
+            val = VECTOR_ELT(VECTOR_ELT(pts, 0), 1);
+            tp = TYPEOF(val);
+        } else {
+            // goto stop;
         }
 
-        iseries[i] = siridb_series_create(
-            tp,
-            name,
-            n);
+        switch(tp) {
+            case INTSXP:
+                iseries[i] = siridb_series_create(SIRIDB_SERIES_TP_INT64, name, n);
+                break;
+            case REALSXP:
+                iseries[i] = siridb_series_create(SIRIDB_SERIES_TP_REAL, name, n);
+                break;
+            case STRSXP:
+                iseries[i] = siridb_series_create(SIRIDB_SERIES_TP_STR, name, n);
+                break;
+            // default:
+                // goto stop;
+        }
 
         for (size_t j = 0; j < n; j++) {
             tv = VECTOR_ELT(pts, j);
+            ts = VECTOR_ELT(tv, 0);
             val = VECTOR_ELT(tv, 1);
-            if (TYPEOF())
+            if (TYPEOF(ts) != INTSXP) {
+                // goto stop;
+            }
+            if (TYPEOF(val) != tp) {
+                // goto stop;
+            }
             ipoint = iseries[i]->points + j;
             ipoint->ts = (uint64_t) asInteger(VECTOR_ELT(tv, 0));
 
-            switch (TYPEOF(x)
-            {
-                case LGLSXP:
-                    ipoint->via.int64 = (int64_t) asInteger(VECTOR_ELT(tv, 1));
-                    break;
+            switch(TYPEOF(val)) {
                 case INTSXP:
-                    ipoint->via.int64 = (int64_t) asInteger(VECTOR_ELT(tv, 1));
+                    ipoint->via.int64 = (int64_t) asInteger(val);
                     break;
                 case REALSXP:
-                    ipoint->via.real = (double_t) asReal(VECTOR_ELT(tv, 1));
+                    ipoint->via.real = (double_t) asReal(val);
                     break;
                 case STRSXP:
-                    ipoint->via.str = (char *) strdup(CHAR(asChar(VECTOR_ELT(tv, 1))));
+                    ipoint->via.str = (char *) strdup(CHAR(asChar(val)));
                     break;
-
+                // default:
+                    // goto stop;
             }
         }
     }

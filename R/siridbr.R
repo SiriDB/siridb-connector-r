@@ -27,7 +27,7 @@ SiriDB <- function(user, password, dbname, server, port=9000L)
         ERR_UNKNOWN_DB = -73,
         ERR_LOADING_DB = -74
     )
-    version <- 1.0.0
+    version <- "0.1.0"
 
     me <- list(
         env_ = env_,

@@ -91,7 +91,6 @@ The callback function will be called with two arguments:
 series = list(
     list(
         name='example',     # name
-        type='integer',     # float, integer or string
         points=list(
             list(timestamp=1500000000, value=0L),   # time-stamp, value
             list(timestamp=1500000900, value=1L)    # etc.
@@ -124,17 +123,20 @@ Sometimes its useful to act on a specific error, for example you might want to r
 
 The following status codes can be returned:
 
-- `sdbaddon.ERR_MSG` (-64) *General error*
-- `sdbaddon.ERR_QUERY` (-65) *Most likely a syntax error in the query*
-- `sdbaddon.ERR_INSERT` (-66) *Most likely the data is invalid or corrupt*
-- `sdbaddon.ERR_SERVER` (-67) *The server could not perform the request, you could try another SiriDB server*
-- `sdbaddon.ERR_POOL` (-68) *At least one pool has no online SiriDB server*
-- `sdbaddon.ERR_ACCESS` (-69) *The database user has not enough privileges to process the request*,
-- `sdbaddon.ERR_RUNTIME` (-70) *Unexpected error has occurred, please check the SiriDB log*
-- `sdbaddon.ERR_NOT_AUTHENTICATED` (-71) *The connection is not authenticated*
-- `sdbaddon.ERR_CREDENTIALS` (-72) *Credentials are invalid*
-- `sdbaddon.ERR_UNKNOWN_DB` (-73) *Trying to authenticate to an unknown database*
-- `sdbaddon.ERR_LOADING_DB` (-74) *The database is loading*
+- `SiriDB.errcodes.ERR_MSG` (-64) *General error*
+- `SiriDB.errcodes.ERR_QUERY` (-65) *Most likely a syntax error in the query*
+- `SiriDB.errcodes.ERR_INSERT` (-66) *Most likely the data is invalid or corrupt*
+- `SiriDB.errcodes.ERR_SERVER` (-67) *The server could not perform the request, you could try another SiriDB server*
+- `SiriDB.errcodes.ERR_POOL` (-68) *At least one pool has no online SiriDB server*
+- `SiriDB.errcodes.ERR_ACCESS` (-69) *The database user has not enough privileges to process the request*,
+- `SiriDB.errcodes.ERR_RUNTIME` (-70) *Unexpected error has occurred, please check the SiriDB log*
+- `SiriDB.errcodes.ERR_NOT_AUTHENTICATED` (-71) *The connection is not authenticated*
+- `SiriDB.errcodes.ERR_CREDENTIALS` (-72) *Credentials are invalid*
+- `SiriDB.errcodes.ERR_UNKNOWN_DB` (-73) *Trying to authenticate to an unknown database*
+- `SiriDB.errcodes.ERR_LOADING_DB` (-74) *The database is loading*
 
 ## Version info
-TODO
+Show version info.
+```{r}
+siridb$version()
+```

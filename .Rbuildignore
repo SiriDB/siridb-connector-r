@@ -1,4 +1,3 @@
-^cran-comments\.md$ # Comments for CRAN submission
 /\.git$
 /\.github$
 /\.mailmap$
